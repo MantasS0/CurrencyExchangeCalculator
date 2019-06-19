@@ -1,6 +1,9 @@
 package com.company;
 
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 public abstract class Database {
 
@@ -14,11 +17,73 @@ public abstract class Database {
     private static String dbHost = "localhost:3306";
     private static String dbName = "exchange_rate_db";
 
+
+    private static String[] tableNames = {"eur_rates", "usd_rates", "gbp_rates", "transactions"};
+    private static HashMap<String, String> currencyLongNames = new HashMap<String, String>() {{
+        put("USD", "United States Dollar");
+        put("EUR", "Euro");
+        put("GBP", "British Pound");
+    }};
+
+
     public abstract void updateData();
 
 //    public abstract void deleteData();
 
     public abstract void createData();
+
+    public static void getGetAllData() {
+        for (String table : tableNames) {
+            if (table.contains("_rates")) {
+                getTableData(table);
+            }
+        }
+    }
+
+    public static void printAllData() {
+        for (Map.Entry<String, Currency> currency : Currency.getCurrencies().entrySet()){
+            System.out.println("Printing currency key " + currency.getKey());
+            System.out.println("Name: " + currency.getValue().getNameLong());
+            System.out.println("Name short: " + currency.getValue().getNameShort());
+            System.out.println("Name of table: " + currency.getValue().getTableName());
+
+            for (Map.Entry<String, ExchangeRate> curr : currency.getValue().getExchangeRates().entrySet()) {
+                System.out.println("Exchange rates key: " + curr.getKey());
+                System.out.println("Exchange rates currencyId: " + curr.getValue().getId());
+                System.out.println("Exchange rates currencyName: " + curr.getValue().getCurrency());
+                System.out.println("Exchange rates exchangeRate: " + curr.getValue().getExchangeRate());
+            }
+            System.out.println();
+
+        }
+    }
+
+
+    public static void getTableData(String tableName) {
+        try {
+            String selectQueryStatement = "SELECT * from " + tableName;
+            dbPrepareStatement = dbConnection.prepareStatement(selectQueryStatement);
+            ResultSet results = dbPrepareStatement.executeQuery();
+
+            TreeMap<String, ExchangeRate> currencyExchangeMap = new TreeMap<String, ExchangeRate>();
+            String shortName = tableName.substring(0, 3).toUpperCase();
+            while (results.next()) {
+                /* Gauname rezultatus is duombazes ir issaugome i laikinus darbinius kintamuosius */
+                int id = results.getInt("id");
+                String currency = results.getString("currency");
+                Double exchangeRate = results.getDouble("buy_rate");
+
+                currencyExchangeMap.put(currency, new ExchangeRate(id, currency, exchangeRate));
+            }
+            Currency newCurrency = new Currency(tableName, shortName, currencyLongNames.get(shortName), currencyExchangeMap);
+
+            Currency.getCurrencies().put(shortName, newCurrency);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private static boolean checkIfDBExists() {
         /* Patikriname ar irasytas JDBC driveris darbui su mysql */
@@ -113,7 +178,7 @@ public abstract class Database {
                 dbStatement.executeUpdate(createTableStatement);
                 System.out.println("Table \"" + tableName + "\" created...");
 
-            }catch (SQLException e){
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
