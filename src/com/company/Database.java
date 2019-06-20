@@ -25,6 +25,9 @@ public abstract class Database {
         put("GBP", "British Pound");
     }};
 
+    public static HashMap<String, String> getCurrencyLongNames() {
+        return currencyLongNames;
+    }
 
     public abstract void updateData();
 
@@ -32,7 +35,7 @@ public abstract class Database {
 
     public abstract void createData();
 
-    public static void getGetAllData() {
+    public static void getAllData() {
         for (String table : tableNames) {
             if (table.contains("_rates")) {
                 getTableData(table);

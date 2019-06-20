@@ -102,10 +102,14 @@
       <component id="31825" class="javax.swing.JList" binding="list1" default-binding="true">
         <constraints>
           <grid row="1" column="3" row-span="5" col-span="1" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <minimum-size width="150" height="50"/>
             <preferred-size width="150" height="50"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <enabled value="true"/>
+          <model/>
+        </properties>
       </component>
       <vspacer id="f1b1d">
         <constraints>
