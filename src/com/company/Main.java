@@ -9,8 +9,6 @@ public class Main {
         Database.getAllData();
         Database.printAllData();
 
-
-
         showApplication();
 
     }

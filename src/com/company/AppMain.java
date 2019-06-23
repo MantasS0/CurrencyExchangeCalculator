@@ -45,10 +45,6 @@ public class AppMain {
 
     public AppMain() {
 
-        populateComboBoxToSell();
-
-        populateHelpList();
-
         comboBoxToSell.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent event) {
@@ -120,16 +116,23 @@ public class AppMain {
                 }
             }
         });
+
+        populateComboBoxToSell();
+
+        populateHelpList();
+
     }
 
     private void calculateAndPrintToSell(String toSell) {
         Double amount = selectedExchangeRate.getExchangeRate() * Double.parseDouble(toSell);
         textFieldAmountToReceive.setText(df2.format(amount));
+        DAO.insertTransaction(this.selectedCurrencyToSell, Double.parseDouble(toSell), this.selectedCurrencyToBuy, amount, selectedExchangeRate.getExchangeRate());
     }
 
     private void calculateAndPrintToBuy(String toBuy) {
         Double amount = Double.parseDouble(toBuy) / selectedExchangeRate.getExchangeRate();
         textFieldAmountToSell.setText(df2.format(amount));
+        DAO.insertTransaction(this.selectedCurrencyToSell, amount, this.selectedCurrencyToBuy, Double.parseDouble(toBuy), selectedExchangeRate.getExchangeRate());
     }
 
     private void populateComboBoxToSell() {
