@@ -1,6 +1,7 @@
 package com.company;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -17,23 +18,64 @@ public abstract class Database {
     private static String dbHost = "localhost:3306";
     private static String dbName = "exchange_rate_db";
 
-
-    private static String[] tableNames = {"eur_rates", "usd_rates", "gbp_rates", "transactions"};
-    private static HashMap<String, String> currencyLongNames = new HashMap<String, String>() {{
+    private static ArrayList<String> tableNames = new ArrayList<String>();
+    private static TreeMap<String, String> currencyLongNames = new TreeMap<String, String>() {{
         put("USD", "United States Dollar");
         put("EUR", "Euro");
         put("GBP", "British Pound");
+        put("AUD", "Australian Dollar");
+        put("BGN", "Bulgarian Lev");
+        put("BRL", "Brazilian Real");
+        put("CAD", "Canadian Dollar");
+        put("CHF", "Swiss Franc");
+        put("CNY", "Chinese Yuan");
+        put("CZK", "Czech Koruna");
+        put("DKK", "Danish Krone");
+        put("HKD", "Hong Kong Dollar");
+        put("HRK", "Croatian Kuna");
+        put("HUF", "Hungarian Forint");
+        put("IDR", "Indonesian Rupiah");
+        put("ILS", "Israeli New Shekel");
+        put("INR", "Indian Rupee");
+        put("ISK", "Icelandic Króna");
+        put("JPY", "Japanese Yen");
+        put("KRW", "South Korean won");
+        put("MXN", "Mexican Peso");
+        put("MYR", "Malaysian Ringgit");
+        put("NOK", "Norwegian Krone");
+        put("NZD", "New Zealand Dollar");
+        put("PHP", "Philippine Piso");
+        put("PLN", "Poland Złoty");
+        put("RON", "Romanian Leu");
+        put("RUB", "Russian Ruble");
+        put("SEK", "Swedish Krona");
+        put("SGD", "Singapore Dollar");
+        put("THB", "Thai Baht");
+        put("TRY", "Turkish Lira");
+        put("ZAR", "South African Rand");
     }};
 
-    public static HashMap<String, String> getCurrencyLongNames() {
+    public Database() {
+    }
+
+    public static TreeMap<String, String> getCurrencyLongNames() {
         return currencyLongNames;
     }
 
-    public abstract void updateData();
-
-//    public abstract void deleteData();
-
-    public abstract void createData();
+    public static void setTableNames() {
+        try {
+            DatabaseMetaData metadata = dbConnection.getMetaData();
+            ResultSet rs = metadata.getTables("exchange_rate_db", null, null, new String[]{"TABLE", "VIEW"});
+            while (rs.next()) {
+                String tableName = rs.getString("TABLE_NAME");
+                if (tableName.contains("_rates")) {
+                    Database.tableNames.add(tableName);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void getAllData() {
         for (String table : tableNames) {
@@ -122,70 +164,16 @@ public abstract class Database {
                 // DriverManager: The basic service for managing a set of JDBC drivers.
                 Database.dbConnection = DriverManager.getConnection("jdbc:mysql://" + dbHost + "/" + dbName + "?useSSL=true", dbUser, dbPassword);
                 System.out.println("Database connection successful");
-                Database.checkTables();
+                Database.setTableNames();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         } else {
             System.out.println("Database does not exist");
-            try {
-                String createDatabaseStatement = "CREATE DATABASE " + Database.dbName + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
-                dbStatement = dbConnection.createStatement();
-                dbStatement.executeUpdate(createDatabaseStatement);
-                System.out.println("Created new Database \"" + Database.dbName + "\"...");
-                String useDatabase = "USE " + Database.dbName + ";";
-                dbStatement.executeUpdate(useDatabase);
-                Database.checkTables();
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 
-    private static void checkTables() {
-        try {
-            String[] tables = {"eur_rates", "usd_rates", "gbp_rates", "transactions"};
-            DatabaseMetaData metadata = dbConnection.getMetaData();
-            for (int i = 0; i < tables.length; i++) {
-                ResultSet rs = metadata.getTables(null, null, tables[i], null);
-                if (!rs.next()) {
-                    createTable(tables[i]);
-//                    System.out.println("Table " + tables[i] + " created");
-                }
-            }
-            System.out.println("Table check successful");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
-    private static void createTable(String tableName) {
-        String createTableStatement = null;
-        if (tableName.equals("eur_rates")) {
-            createTableStatement = "CREATE TABLE `" + Database.dbName + "`.`eur_rates` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `currency` VARCHAR(5) NOT NULL , `sold_rate` DOUBLE UNSIGNED NOT NULL , `buy_rate` DOUBLE UNSIGNED NOT NULL , `updated` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`)) ENGINE = InnoDB;";
-
-        } else if (tableName.equals("usd_rates")) {
-            createTableStatement = "CREATE TABLE `" + Database.dbName + "`.`usd_rates` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `currency` VARCHAR(5) NOT NULL , `sold_rate` DOUBLE UNSIGNED NOT NULL , `buy_rate` DOUBLE UNSIGNED NOT NULL , `updated` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`)) ENGINE = InnoDB;";
-
-        } else if (tableName.equals("gbp_rates")) {
-            createTableStatement = "CREATE TABLE `" + Database.dbName + "`.`gbp_rates` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `currency` VARCHAR(5) NOT NULL , `sold_rate` DOUBLE UNSIGNED NOT NULL , `buy_rate` DOUBLE UNSIGNED NOT NULL , `updated` TIMESTAMP on update CURRENT_TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`)) ENGINE = InnoDB;";
-
-        } else if (tableName.equals("transactions")) {
-            createTableStatement = "CREATE TABLE `" + Database.dbName + "`.`transactions` ( `id` INT UNSIGNED NOT NULL AUTO_INCREMENT , `sold_currency` VARCHAR(5) NOT NULL , `sold_amount` DOUBLE UNSIGNED NOT NULL , `bought_currency` VARCHAR(5) NOT NULL , `bought_amount` DOUBLE UNSIGNED NOT NULL , `exchange_rate` DOUBLE UNSIGNED NOT NULL , `time_stamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , PRIMARY KEY (`id`)) ENGINE = InnoDB;";
-        }
-
-        if (createTableStatement != null) {
-            try {
-                dbStatement = dbConnection.createStatement();
-                dbStatement.executeUpdate(createTableStatement);
-                System.out.println("Table \"" + tableName + "\" created...");
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
 
 }

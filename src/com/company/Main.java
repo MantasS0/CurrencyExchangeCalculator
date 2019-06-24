@@ -5,9 +5,7 @@ import javax.swing.*;
 public class Main {
     public static void main(String[] args) {
         Database.makeDBConnection();
-
         Database.getAllData();
-        Database.printAllData();
 
         showApplication();
 

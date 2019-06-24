@@ -21,6 +21,8 @@ public class AppMain {
     private DefaultListModel model = new DefaultListModel();
     private JList list1;
     private JButton buttonCalculate;
+    private JScrollPane scrollPane1;
+
 
     private String selectedCurrencyToSell;
     private String selectedCurrencyToBuy;
@@ -155,10 +157,12 @@ public class AppMain {
             this.model.clear();
         }
 
+        Database.getCurrencyLongNames().descendingKeySet();
         for (Map.Entry<String, String> currencyNames : Database.getCurrencyLongNames().entrySet()){
             String listLine = currencyNames.getKey() + " = " + currencyNames.getValue();
                     this.model.addElement(listLine);
         }
+
     }
 
     private void populateComboBoxToBuy(String exclude) {

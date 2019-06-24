@@ -7,6 +7,8 @@ import java.util.Map;
 
 public class DAO extends Database{
 
+    public DAO() {
+    }
 
     public static void insertTransaction(String soldCurrency, Double soldAmount, String boughtCurrency, Double boughtAmount, Double exchangeRate) {
         try {
@@ -26,13 +28,4 @@ public class DAO extends Database{
         }
     }
 
-    @Override
-    public void updateData() {
-
-    }
-
-    @Override
-    public void createData() {
-
-    }
 }
